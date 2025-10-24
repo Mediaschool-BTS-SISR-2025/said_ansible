@@ -1,0 +1,107 @@
+---
+- name: Ensure base packages for Docker repo
+  become: true
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: yes
+
+- name: Ensure keyrings dir exists
+  become: true
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Remove any old Docker sources in /etc/apt/sources.list
+  become: true
+  lineinfile:
+    path: /etc/apt/sources.list
+    regexp: 'download\.docker\.com'
+    state: absent
+
+- name: Remove specific conflicting Docker list files
+  become: true
+  file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+
+- name: Remove specific conflicting Docker list files (download_docker_com_linux_debian.list)
+  become: true
+  file:
+    path: /etc/apt/sources.list.d/download_docker_com_linux_debian.list
+    state: absent
+
+- name: Forcefully remove docker.list
+  become: true
+  shell: rm -f /etc/apt/sources.list.d/docker.list
+
+- name: Forcefully remove download_docker_com_linux_debian.list
+  become: true
+  shell: rm -f /etc/apt/sources.list.d/download_docker_com_linux_debian.list
+
+- name: Verify conflicting files are removed
+  become: true
+  stat:
+    path: /etc/apt/sources.list.d/docker.list
+  register: docker_list_stat
+
+- name: Fail if docker.list still exists
+  fail:
+    msg: "docker.list still exists in /etc/apt/sources.list.d/"
+  when: docker_list_stat.stat.exists
+
+- name: Verify conflicting files are removed (download_docker_com_linux_debian.list)
+  become: true
+  stat:
+    path: /etc/apt/sources.list.d/download_docker_com_linux_debian.list
+  register: download_docker_list_stat
+
+- name: Fail if download_docker_com_linux_debian.list still exists
+  fail:
+    msg: "download_docker_com_linux_debian.list still exists in /etc/apt/sources.list.d/"
+  when: download_docker_list_stat.stat.exists
+
+- name: Find any Docker lists in sources.list.d
+  become: true
+  find:
+    paths: /etc/apt/sources.list.d
+    patterns: "*docker*.list"
+    recurse: no
+  register: docker_lists
+
+- name: Remove old Docker list files
+  become: true
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ docker_lists.files | default([]) }}"
+
+- name: Clean apt cache
+  become: true
+  shell: apt-get clean
+
+- name: Téléchargement de la clé GPG Docker
+  shell: curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  args:
+    creates: /etc/apt/keyrings/docker.gpg
+
+- name: Définition des permissions de la clé
+  file:
+    path: /etc/apt/keyrings/docker.gpg
+    mode: '0644'
+
+- name: Ajout du repository Docker pour Debian
+  apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+  when: ansible_os_family == "Debian" and ansible_distribution == "Debian"
+
+- name: Update apt cache after Docker repo
+  become: true
+  apt:
+    update_cache: yes

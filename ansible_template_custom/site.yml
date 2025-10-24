@@ -1,0 +1,12 @@
+- hosts: all
+  become: true
+  vars:
+    ldap_domain: iris.local
+    ldap_base: "dc=iris,dc=local"
+    ldap_admin_password: "admin"   # changez ce mot de passe
+  roles:
+    - common
+    - apache
+    - openldap
+    - portainer
+    - docker

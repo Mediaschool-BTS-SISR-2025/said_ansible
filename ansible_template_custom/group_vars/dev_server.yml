@@ -1,0 +1,12 @@
+# ==============================
+# Variables OpenLDAP - Dev Server
+# ==============================
+
+# Domaine LDAP et organisation
+ldap_domain: "iris.local"
+ldap_base_dn: "dc=iris,dc=local"
+ldap_organization: "IRIS"
+
+# Le mot de passe admin LDAP est stocké dans un vault séparé
+# (voir group_vars/dev_server/vault.yml)
+ldap_admin_password: "admin"   # changez ce mot de passe

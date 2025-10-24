@@ -1,0 +1,14 @@
+[http]
+    [http.middlewares]
+        [http.middlewares.secureHeaders]
+            [http.middlewares.secureHeaders.headers]
+                sslRedirect = true
+                forceSTSHeader = true
+                stsIncludeSubdomains = true
+                stsPreload = true
+                stsSeconds = 31_536_000
+                
+        [http.middlewares.user-auth]
+            [http.middlewares.user-auth.basicAuth]
+               # users = [ "yan:$apr1$5n6POC0U$IRcEbvEeS4iEzh6tq5qit." ]
+		users = [ "admin@shenron.dev:$apr1$W57hpspc$kP/4v/2M4wSp4KLjHIxwV1" ]

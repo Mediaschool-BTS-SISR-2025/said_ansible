@@ -1,0 +1,13 @@
+---
+- name: Configuration du serveur de développement
+  hosts: dev_server
+  become: yes
+  
+  roles:
+    # - common
+    #- docker
+    # - users
+    # - firewall
+    # - tools
+    - openldap
+    - portainer_api

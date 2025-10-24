@@ -1,0 +1,32 @@
+[api]
+  dashboard = true
+  debug = true
+
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+  [entryPoints.websecure]
+    address = ":443"
+    [entryPoints.websecure.http]
+      middlewares = [ "secureHeaders@file" ]
+      [entryPoints.websecure.http.tls]
+        certResolver = "letsencrypt"
+
+[providers]
+  [providers.docker]
+    endpoint = "unix:///var/run/docker.sock"
+    exposedByDefault = false
+  [providers.file]
+    directory = "/configurations"
+    watch = true
+
+[certificatesResolvers]
+  [certificatesResolvers.letsencrypt]
+    [certificatesResolvers.letsencrypt.acme]
+      email = ""
+      storage = "acme.json"
+      keyType = "EC384"
+      [certificatesResolvers.letsencrypt.acme.httpChallenge]
+        entryPoint = "web"

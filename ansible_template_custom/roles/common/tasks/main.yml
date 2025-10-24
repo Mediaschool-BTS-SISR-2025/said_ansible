@@ -1,0 +1,92 @@
+---
+# Mise à jour des paquets
+- name: Mise à jour de la liste des paquets
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+# Installation des paquets de base
+- name: Installation des paquets essentiels
+  apt:
+    name:
+      - zsh
+      - git
+      - vim
+      - sudo
+      - python3-pip
+      - rsync
+      - net-tools
+    state: present
+
+# Création du groupe développeurs
+- name: Création du groupe sisr
+  group:
+    name: sisr
+    state: present
+    gid: 2000
+
+- name: Création du groupe slam
+  group:
+    name: slam
+    state: present
+    gid: 3000
+
+# Installation de btop (peut nécessiter des dépôts supplémentaires sur Debian 11)
+- name: Vérification de la disponibilité de btop
+  apt:
+    name: btop
+    state: present
+  ignore_errors: yes
+  register: btop_install
+
+# Installation alternative de btop si non disponible dans les dépôts
+- name: Installation de btop depuis GitHub
+  when: btop_install is failed
+  block:
+    - name: Installation des dépendances pour btop
+      apt:
+        name:
+          - make
+          - g++
+          - coreutils
+        state: present
+
+    - name: Téléchargement et extraction de btop
+      unarchive:
+        src: "https://github.com/aristocratos/btop/releases/latest/download/btop-x86_64-linux-musl.tbz"
+        dest: /tmp
+        remote_src: yes
+
+    - name: Installation de btop
+      shell: cd /tmp/btop && make install
+      args:
+        creates: /usr/local/bin/btop
+
+# Configuration de zsh comme shell par défaut
+- name: Configuration de zsh comme shell par défaut
+  user:
+    name: "{{ ansible_user }}"
+    shell: /bin/zsh
+
+# Installation de docker minimal
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install common packages (including docker)
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - docker.io
+    state: present
+    install_recommends: no
+
+- name: Ensure docker service is started and enabled
+  service:
+    name: docker
+    state: started
+    enabled: true

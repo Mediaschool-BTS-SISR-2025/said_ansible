@@ -1,0 +1,17 @@
+---
+- name: Ensure portainer data volume exists
+  community.docker.docker_volume:
+    name: portainer_data
+
+- name: Run Portainer CE container
+  community.docker.docker_container:
+    name: portainer
+    image: portainer/portainer-ce:latest
+    restart_policy: unless-stopped
+    state: started
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock

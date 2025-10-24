@@ -1,0 +1,80 @@
+# --- Admins ---
+dn: uid=admin1,ou=Admins,ou=People,dc=iris,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Admin One
+sn: Admin
+uid: admin1
+uidNumber: 20001
+gidNumber: 1000
+homeDirectory: /home/admin1
+loginShell: /bin/bash
+userPassword: admin1pass
+
+dn: uid=admin2,ou=Admins,ou=People,dc=iris,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Admin Two
+sn: Admin
+uid: admin2
+uidNumber: 20002
+gidNumber: 1000
+homeDirectory: /home/admin2
+loginShell: /bin/bash
+userPassword: admin2pass
+
+# --- Eleves SISR ---
+dn: uid=saoud,ou=SISR,ou=Eleves,ou=People,dc=iris,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Edib Saoud
+sn: esaoud
+uid: saoud
+uidNumber: 20004
+gidNumber: 1001
+homeDirectory: /home/saoud
+loginShell: /bin/bash
+userPassword: edib
+
+dn: uid=ahmedmoussa,ou=SISR,ou=Eleves,ou=People,dc=iris,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Said AHMED MOUSSA
+sn: sahm
+uid: ahmedmoussa
+uidNumber: 20005
+gidNumber: 1001
+homeDirectory: /home/ahmedmoussa
+loginShell: /bin/bash
+userPassword: said
+
+dn: uid=belloum,ou=SISR,ou=Eleves,ou=People,dc=iris,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Nedj BELLOUM
+sn: nbelloum
+uid: belloum
+uidNumber: 20006
+gidNumber: 1001
+homeDirectory: /home/belloum
+loginShell: /bin/bash
+userPassword: football
+
+# --- Profs ---
+dn: uid=prof1,ou=Profs,ou=People,dc=iris,dc=local
+objectClass: inetOrgPerson
+objectClass: posixAccount
+objectClass: shadowAccount
+cn: Yan Bourquard
+sn: ybourquard
+uid: bourquard
+uidNumber: 20007
+gidNumber: 1002
+homeDirectory: /home/yan
+loginShell: /bin/bash
+userPassword: prout

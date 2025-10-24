@@ -1,0 +1,33 @@
+---
+portainer_scheme: "https"
+portainer_host: "10.0.108.132"
+portainer_port: 9443
+portainer_api_base: "{{ portainer_scheme }}://{{ portainer_host }}:{{ portainer_port }}/api"
+portainer_validate_certs: false
+
+portainer_admin_username: "admin"
+portainer_admin_password: "admin1"
+
+ldap_url: "10.0.108.132:389"
+ldap_anonymous: false
+ldap_reader_dn: "cn=admin,dc=iris,dc=local"
+ldap_reader_password: "admin1"
+ldap_starttls: true
+
+ldap_user_base_dn: "dc=iris,dc=local"
+ldap_user_filter: "(objectClass=person)"
+ldap_username_attribute: "uid"
+
+ldap_group_base_dn: "ou=Groups,dc=iris,dc=local"
+ldap_group_filter: "(objectClass=groupOfNames)"
+ldap_group_member_attribute: "member"
+
+ldap_autocreate_users: true
+
+portainer_team_mappings:
+  - name: "Admins"
+    ldap_group_dn: "cn=Admins,ou=Groups,dc=iris,dc=local"
+  - name: "SISR"
+    ldap_group_dn: "cn=SISR,ou=Groups,dc=iris,dc=local"
+  - name: "SLAM"
+    ldap_group_dn: "cn=SLAM,ou=Groups,dc=iris,dc=local"

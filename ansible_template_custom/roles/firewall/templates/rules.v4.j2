@@ -1,0 +1,23 @@
+# Règles iptables de base - Docker gérera ses propres chaînes
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+
+# Autoriser le trafic loopback
+-A INPUT -i lo -j ACCEPT
+
+# Autoriser les connexions établies
+-A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Autoriser SSH (indispensable)
+-A INPUT -p tcp --dport 22 -j ACCEPT
+
+# Autoriser HTTP/HTTPS
+-A INPUT -p tcp --dport 80 -j ACCEPT
+-A INPUT -p tcp --dport 443 -j ACCEPT
+
+# Refuser tout le reste
+-A INPUT -j DROP
+
+COMMIT

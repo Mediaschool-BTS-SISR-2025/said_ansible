@@ -1,0 +1,93 @@
+- name: Preseed slapd debconf set admin password and domain
+  debconf:
+    name: slapd
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  loop:
+    - { question: "slapd/internal/generated_adminpw", value: "{{ ldap_admin_password }}", vtype: "password" }
+    - { question: "slapd/password1", value: "{{ ldap_admin_password }}", vtype: "password" }
+    - { question: "slapd/password2", value: "{{ ldap_admin_password }}", vtype: "password" }
+    - { question: "slapd/domain", value: "{{ ldap_domain }}", vtype: "string" }
+    - { question: "slapd/organization", value: "{{ ldap_domain.split('.')[0] }}", vtype: "string" }
+    - { question: "slapd/no_configuration", value: "false", vtype: "boolean" }
+
+- name: Install slapd and ldap-utils
+  apt:
+    name:
+      - slapd
+      - ldap-utils
+    state: present
+    force: yes
+
+- name: Copy provided LDAP structure LDIF to temporary path
+  copy:
+    src: structure.ldif
+    dest: /tmp/structure.ldif
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Import LDAP structure if ou=People is missing
+  shell: |
+    ldapsearch -x -LLL -H ldap://127.0.0.1 -b "{{ ldap_base }}" "(ou=People)" dn | grep -q "^dn:" || ldapadd -x -D "cn=admin,{{ ldap_base }}" -w "{{ ldap_admin_password }}" -f /tmp/structure.ldif
+  args:
+    warn: false
+
+- name: Remove temporary LDIF
+  file:
+    path: /tmp/structure.ldif
+    state: absent
+
+# --- NEW: add users LDIF and import idempotently ---
+- name: Copy provided LDAP users LDIF to temporary path
+  copy:
+    src: users.ldif
+    dest: /tmp/users.ldif
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Import LDAP users if admin1 is missing
+  shell: |
+    ldapsearch -x -LLL -H ldap://127.0.0.1 -b "{{ ldap_base }}" "(uid=admin1)" dn | grep -q "^dn:" || ldapadd -x -D "cn=admin,{{ ldap_base }}" -w "{{ ldap_admin_password }}" -f /tmp/users.ldif
+  args:
+    warn: false
+
+- name: Remove temporary users LDIF
+  file:
+    path: /tmp/users.ldif
+    state: absent
+
+- name: Install phpLDAPadmin
+  apt:
+    name: phpldapadmin
+    state: present
+
+- name: Allow phpldapadmin to connect to localhost (adjust config)
+  replace:
+    path: /etc/phpldapadmin/config.php
+    regexp: "\\$servers->setValue\\('server', 'host', '\\S+'\\);"
+    replace: "$servers->setValue('server','host','127.0.0.1');"
+  notify: restart apache
+
+- name: Set phpldapadmin default base DN
+  lineinfile:
+    path: /etc/phpldapadmin/config.php
+    regexp: "\\$servers->setValue\\('server','base',\\s*array\\(\\)\\);"
+    line: "$servers->setValue('server','base',array('{{ ldap_base }}'));"
+  notify: restart apache
+
+- name: Ensure phpldapadmin is accessible (allow)
+  lineinfile:
+    path: /etc/phpldapadmin/config.php
+    regexp: "Allow from 127.0.0.1"
+    insertafter: EOF
+    line: "// Access adjustments done by Ansible"
+  notify: restart apache
+
+- name: Restart apache
+  service:
+    name: apache2
+    state: restarted
+  when: false

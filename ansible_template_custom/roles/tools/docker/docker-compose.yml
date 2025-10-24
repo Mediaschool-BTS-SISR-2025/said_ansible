@@ -1,0 +1,57 @@
+version: "3.7"
+
+services:
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    hostname: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    env_file:
+      - .env
+    networks:   
+      proxy:
+        ipv4_address: 172.100.10.10  
+      #- metric
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./systeme/traefik_data/traefik.toml:/etc/traefik/traefik.toml
+      - ./systeme/traefik_data/acme.json:/acme.json
+      - ./systeme/traefik_data/configurations:/configurations
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.traefik-secure.entrypoints=websecure"
+      - "traefik.http.routers.traefik-secure.rule=Host(`traefik.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.traefik-secure.middlewares=user-auth@file"
+    
+  portainer:
+    image: portainer/portainer-ce:sts
+    container_name: portainer
+    hostname: portainer 
+    networks:
+      proxy:
+          ipv4_address: 172.100.10.20 
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./systeme/portainer_data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.portainer-secure.entrypoints=websecure"
+      - "traefik.http.routers.portainer-secure.rule=Host(`portainer.${DOMAIN_NAME}`)"
+      - "traefik.http.routers.portainer-secure.service=portainer"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+networks:
+  proxy:
+    ipam:
+      driver: default 
+      config:
+        - subnet: "172.100.10.0/24"
