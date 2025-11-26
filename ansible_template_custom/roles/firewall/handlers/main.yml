@@ -1,8 +1,0 @@
----
-- name: save firewall rules
-  command: netfilter-persistent save
-
-- name: rollback firewall rules
-  command: iptables-restore /root/iptables.bak
-  when: firewall_save_failed | default(false)
-  
